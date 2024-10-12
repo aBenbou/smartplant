@@ -1,0 +1,310 @@
+[
+
+    {
+        "id": "smartplant_tab",
+        "type": "tab",
+        "label": "SmartPlant",
+        "disabled": false,
+        "info": ""
+    },
+
+    {
+        "id": "mqtt_in",
+        "type": "mqtt in",
+        "z": "smartplant_tab",
+        "name": "From Gateway",
+        "topic": "smartplant/telemetry",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 120,
+        "y": 140,
+        "wires": [
+            [
+                "debug_telemetry",
+                "switch_light_threshold",
+                "switch_moisture_level",
+                "websocket_out_dashboard"
+            ]
+        ]
+    },
+
+    {
+        "id": "debug_telemetry",
+        "type": "debug",
+        "z": "smartplant_tab",
+        "name": "Messages received from Gateway",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 400,
+        "y": 60,
+        "wires": []
+    },
+
+    {
+        "id": "switch_light_threshold",
+        "type": "switch",
+        "z": "smartplant_tab",
+        "name": "Check light threshold",
+        "property": "payload.light",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "lte",
+                "v": "500",
+                "vt": "num"
+            },
+            {
+                "t": "gt",
+                "v": "500",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 340,
+        "y": 140,
+        "wires": [
+            [
+                "template_light_on"
+            ],
+            [
+                "template_light_off"
+            ]
+        ]
+    },
+
+    {
+        "id": "template_light_on",
+        "type": "template",
+        "z": "smartplant_tab",
+        "name": "Light On command",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "json",
+        "syntax": "plain",
+        "template": "{\"relay\":\"ON\"}",
+        "output": "str",
+        "x": 570,
+        "y": 120,
+        "wires": [
+            [
+                "mqtt_out_gateway"
+            ]
+        ]
+    },
+
+    {
+        "id": "template_light_off",
+        "type": "template",
+        "z": "smartplant_tab",
+        "name": "Light Off command",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "json",
+        "syntax": "plain",
+        "template": "{\"relay\":\"OFF\"}",
+        "output": "str",
+        "x": 570,
+        "y": 180,
+        "wires": [
+            [
+                "mqtt_out_gateway"
+            ]
+        ]
+    },
+
+    {
+        "id": "switch_moisture_level",
+        "type": "switch",
+        "z": "smartplant_tab",
+        "name": "Check Moisture Level",
+        "property": "payload.moisture",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "lte",
+                "v": "30",
+                "vt": "num"
+            },
+            {
+                "t": "gt",
+                "v": "30",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 340,
+        "y": 220,
+        "wires": [
+            [
+                "template_relay_on"
+            ],
+            [
+                "template_relay_off"
+            ]
+        ]
+    },
+
+    {
+        "id": "template_relay_on",
+        "type": "template",
+        "z": "smartplant_tab",
+        "name": "Relay On command",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "json",
+        "syntax": "plain",
+        "template": "{\"relay\":\"ON\"}",
+        "output": "str",
+        "x": 570,
+        "y": 240,
+        "wires": [
+            [
+                "mqtt_out_gateway"
+            ]
+        ]
+    },
+
+    {
+        "id": "template_relay_off",
+        "type": "template",
+        "z": "smartplant_tab",
+        "name": "Relay Off command",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "json",
+        "syntax": "plain",
+        "template": "{\"relay\":\"OFF\"}",
+        "output": "str",
+        "x": 570,
+        "y": 280,
+        "wires": [
+            [
+                "mqtt_out_gateway"
+            ]
+        ]
+    },
+
+    {
+        "id": "mqtt_out_gateway",
+        "type": "mqtt out",
+        "z": "smartplant_tab",
+        "name": "To Gateway",
+        "topic": "smartplant/commands",
+        "qos": "1",
+        "retain": "",
+        "broker": "mqtt_broker",
+        "x": 790,
+        "y": 200,
+        "wires": []
+    },
+
+    {
+        "id": "websocket_out_dashboard",
+        "type": "websocket out",
+        "z": "smartplant_tab",
+        "name": "To Dashboard",
+        "server": "websocket_server",
+        "client": "",
+        "x": 570,
+        "y": 320,
+        "wires": []
+    },
+
+    {
+        "id": "http_in_dashboard",
+        "type": "http in",
+        "z": "smartplant_tab",
+        "name": "Dashboard request",
+        "url": "/smartplant",
+        "method": "get",
+        "upload": false,
+        "x": 150,
+        "y": 400,
+        "wires": [
+            [
+                "template_html_dashboard"
+            ]
+        ]
+    },
+
+    {
+        "id": "http_response_dashboard",
+        "type": "http response",
+        "z": "smartplant_tab",
+        "name": "Response HTTP",
+        "statusCode": "",
+        "headers": {},
+        "x": 570,
+        "y": 400,
+        "wires": []
+    },
+
+    {
+        "id": "template_html_dashboard",
+        "type": "template",
+        "z": "smartplant_tab",
+        "name": "HTML page",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "plain",
+        "template": "<!-- Your HTML dashboard code here -->",
+        "output": "str",
+        "x": 370,
+        "y": 400,
+        "wires": [
+            [
+                "http_response_dashboard"
+            ]
+        ]
+    },
+
+    {
+        "id": "websocket_in_dashboard",
+        "type": "websocket in",
+        "z": "smartplant_tab",
+        "name": "From Dashboard",
+        "server": "websocket_server",
+        "client": "",
+        "x": 570,
+        "y": 360,
+        "wires": [
+            [
+                "mqtt_out_gateway"
+            ]
+        ]
+    },
+
+    {
+        "id": "mqtt_broker",
+        "type": "mqtt-broker",
+        "name": "MQTT Broker",
+        "broker": "test.mosquitto.org",
+        "port": "1883",
+        "clientid": "",
+        "usetls": false,
+        "autoConnect": true,
+        "keepalive": "60",
+        "cleansession": true
+    },
+   
+    {
+        "id": "websocket_server",
+        "type": "websocket-listener",
+        "path": "/smartplant/ws",
+        "wholemsg": "false"
+    }
+]
